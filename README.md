@@ -1,8 +1,15 @@
 # plugin-template
 
 **The plugin you copy.** One manifest, its recorded responses, and a workflow
-that runs the same commands the catalogue's CI runs — so the first thing you see
-is the bar you will be held to, and it is already green.
+running the commands a plugin is judged by — so the first thing you see is the
+bar you will be held to, and it is already green.
+
+Those commands are one artefact rather than two. `.github/interim/` lives here
+and is copied byte for byte into every plugin repository, and the reviewed
+catalogue [`F5-R1`](https://github.com/lemonfiber/spec/blob/main/10-functional/features/f-extensibility/f5-plugin-catalogue.md)
+asks for will run the same copy when it exists — which is `0.17.0`, and does not
+yet. What `F10-R7` asks for is that an author meets the bar in their own
+repository rather than in somebody else's pull request, and that is true today.
 
 ```sh
 gh repo create my-plugin --template lemonfiber/plugin-template
