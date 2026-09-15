@@ -135,7 +135,7 @@ python3 .github/interim/validate.py                      # the manifest, offline
 python3 .github/interim/validate.py --published <dir>    # and the rules lemonfiber decides
 python3 .github/interim/vocabulary_gate.py               # fetches those artefacts and does both
 python3 .github/interim/prove.py                         # everything declared, against the recordings
-python3 .github/interim/prove.py --against http://127.0.0.1:5000
+python3 .github/interim/prove.py --against http://127.0.0.1:5057
 python3 .github/interim/image_gate.py                    # the digest, its tag, its signature state
 python3 .github/interim/schema_gate.py                   # fails the day the real schema lands
 ```
@@ -148,7 +148,18 @@ publishes, and **says which rules it did not decide** rather than passing them.
 
 A recording is a moment, and it is reviewed like the manifest: a fixture nobody
 can read is a place for something to hide. Record with the service running at the
-digest `plugin.toml` names, and write down what state it was in:
+digest `plugin.toml` names:
+
+```sh
+docker run --rm -p 5057:5000 \
+  docker.io/jvmilazz0/kavita@sha256:b9c671586db2a6a688da3cb4b45f1319cca33b01e6e760c8bf3c19d60101bdf2
+curl -si http://127.0.0.1:5057/api/health
+```
+
+The host port is deliberately not `5000`: macOS answers that one itself, with an
+AirPlay receiver that returns `403` to everything, and a recording made against
+it would be a recording of the wrong server. Then write down what state the
+service was in when it answered:
 
 ```json
 {
