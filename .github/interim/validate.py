@@ -165,20 +165,53 @@ class Published:
     def point_names(self) -> list[str]:
         return [entry.get("name", "") for entry in (self.points or {}).get("points", [])]
 
+    def occupied(self) -> dict[str, str]:
+        """Every identity a bundled row holds, and which point holds it.
+
+        Across all points rather than per point, because a remedy names a check:
+        a `for` pointing at a bundled check is a collision with `doctor.check`'s
+        register while sitting in a `doctor.remedy` row, and looking only at its
+        own point's occupied set would miss exactly that.
+        """
+        return {
+            identity: entry.get("name", "")
+            for entry in (self.points or {}).get("points", [])
+            for identity in entry.get("occupied", [])
+        }
+
+
+def shaped(document: object, holding: str) -> dict | None:
+    """The artefact, if it is the shape this reads, and nothing if it is not.
+
+    This file reads two documents it does not own and cannot describe — which is
+    the whole point of them being published. A shape it does not recognise has to
+    become a refusal that names the artefact, because the alternative is a stack
+    trace, and a stack trace in a gate is a gate nobody can tell apart from a
+    broken manifest.
+    """
+    if not isinstance(document, dict):
+        return None
+    entries = document.get(holding)
+    if not isinstance(entries, list) or not all(isinstance(one, dict) for one in entries):
+        return None
+    return document
+
 
 def read_published(directory: str | None) -> Published:
     if directory is None:
         return Published(None, None)
     where = pathlib.Path(directory)
-    def read(name: str) -> dict | None:
+
+    def read(name: str, holding: str) -> dict | None:
         path = where / name
         if not path.is_file():
             return None
         try:
-            return json.loads(path.read_text(encoding="utf-8"))
+            return shaped(json.loads(path.read_text(encoding="utf-8")), holding)
         except ValueError:
             return None
-    return Published(read(VOCABULARY), read(EXTENSION_POINTS))
+
+    return Published(read(VOCABULARY, "capabilities"), read(EXTENSION_POINTS, "points"))
 
 
 class Report:
@@ -405,6 +438,7 @@ def validate_claim_probes(claim: dict, at: str, published: Published, report: Re
         validate_request(probe.get("request"), where, report)
         validate_expect(probe.get("expect"), where, report)
         validate_fixture(probe.get("fixture"), where, report)
+        validate_probe_asks_nothing_of_the_library(probe.get("expect"), where, report)
 
     capability = claim.get("capability")
     if not published.asked:
@@ -453,6 +487,38 @@ def validate_claim_probes(claim: dict, at: str, published: Published, report: Re
                 bool(set(expect) & set(wants_body)),
                 where,
                 f"constrains no body, and the probe requires one of: {', '.join(sorted(wants_body))}",
+            )
+
+
+def validate_probe_asks_nothing_of_the_library(expect: object, where: str, report: Report) -> None:
+    """A probe gates an install, so it asks what the service does (F4-R25, ARCH-R119).
+
+    A count above zero is the only way an expectation can say something about how
+    much the operator has; everything else it can say is about shape. So that is
+    where the rule is enforceable, and it is the mistake both plugins written
+    against this vocabulary made within an hour of it being published — *at least
+    one series* reads as the stronger proof and is a plugin nobody can install
+    until they have copied their library over.
+
+    A contributed check is deliberately not held to this. It reports on a running
+    stack rather than gating an install, so one that fails on a fresh machine is
+    a check doing its job.
+    """
+    if not isinstance(expect, dict):
+        return
+    least = expect.get("json_array_min")
+    if isinstance(least, int) and least > 0:
+        report.fail(
+            f"{where}.expect.json_array_min",
+            f"{least!r} asserts the operator has put something there, and a probe gates an "
+            "install — `0` says the answer reads as a list without saying how long it is",
+        )
+    for key, minimum in (expect.get("json_at_least") or {}).items():
+        if isinstance(minimum, (int, float)) and minimum > 0:
+            report.fail(
+                f"{where}.expect.json_at_least",
+                f"{key} at least {minimum!r} asserts the operator has put something there, and "
+                "a probe gates an install; a check may say this and a probe may not",
             )
 
 
@@ -573,7 +639,8 @@ def validate_proofs(proofs: list, report: Report) -> None:
     )
 
 
-def validate_contributions(entries: list, plugin_id: str, published: Published, report: Report) -> None:
+def validate_contributions(entries: list, plugin_id: str, requires: dict,
+                           published: Published, report: Report) -> None:
     """Rows in registers lemonfiber already runs (F3-R33, F4-R21, F4-R22, ARCH-R113).
 
     Which points exist, and what a row at one carries, are lemonfiber's to say
@@ -624,6 +691,15 @@ def validate_contributions(entries: list, plugin_id: str, published: Published, 
 
         if published.asked:
             validate_contribution_row(entry, at, point, published, report)
+            needs = (published.point(point) or {}).get("requires")
+            if needs is not None:
+                report.check(
+                    needs in requires.get("capabilities", []),
+                    "[requires].capabilities",
+                    f"a manifest contributing at {point!r} asks for {needs!r} by name, so a "
+                    "lemonfiber that does not take contributions there refuses this manifest "
+                    "rather than reading the row and dropping it",
+                )
 
     for entry in entries:
         if not isinstance(entry, dict) or entry.get("at") != "doctor.remedy":
@@ -659,17 +735,21 @@ def validate_contribution_row(entry: dict, at: str, point: str, published: Publi
         )
         return
 
-    occupied = published_point.get("occupied", [])
+    occupied = published.occupied()
     for field in ("id", "for"):
         value = entry.get(field)
-        if isinstance(value, str) and value in occupied:
+        held = occupied.get(value) if isinstance(value, str) else None
+        if held is not None:
             report.fail(
                 f"{at}.{field}",
-                f"{value!r} is the identity a bundled row already holds at {point!r}; adding is "
+                f"{value!r} is the identity a bundled row already holds at {held!r}; adding is "
                 "not overriding, and standing in for something bundled is not a manifest's to assert",
             )
 
     row = published_point.get("row", {})
+    if not isinstance(row, dict):
+        report.fail(f"{at}.at", f"{point!r} publishes no row shape this can read")
+        return
     required = row.get("required", [])
     optional = row.get("optional", [])
     for field in required:
@@ -680,14 +760,23 @@ def validate_contribution_row(entry: dict, at: str, point: str, published: Publi
             f"{field!r} is outside what {point!r} declares; it takes: "
             f"{', '.join(sorted(set(required) | set(optional)))}",
         )
-    for field, values in row.get("enums", {}).items():
+    enums = row.get("enums", {})
+    bounds_by_field = row.get("bounds", {})
+    if not isinstance(enums, dict) or not isinstance(bounds_by_field, dict):
+        report.fail(
+            f"{at}.at",
+            f"{point!r} publishes its closed sets or its bounds in a shape this cannot read; "
+            "each is a table keyed by the field it constrains",
+        )
+        return
+    for field, values in enums.items():
         if field in entry:
             report.check(
                 entry[field] in values,
                 f"{at}.{field}",
                 f"{entry[field]!r} is not one of {', '.join(values)}",
             )
-    for field, bounds in row.get("bounds", {}).items():
+    for field, bounds in bounds_by_field.items():
         if field not in entry:
             continue
         value = entry[field]
@@ -950,7 +1039,7 @@ def validate(manifest: dict, report: Report, published: Published | None = None)
 
     contributions = manifest.get("contribution")
     if contributions is not None:
-        validate_contributions(contributions, plugin_id, published, report)
+        validate_contributions(contributions, plugin_id, requires or {}, published, report)
 
     recipes = manifest.get("recipe")
     if recipes is not None:
@@ -1005,11 +1094,13 @@ SAMPLE_POINTS = {
                 "enums": {"category": ["services", "network"]},
             },
             "occupied": ["storage.space"],
+            "requires": "doctor.contribute",
         },
         {
             "name": "doctor.remedy",
             "row": {"required": ["id", "for", "action", "why"], "optional": ["detail"]},
             "occupied": [],
+            "requires": "doctor.contribute",
         },
     ],
 }
@@ -1062,7 +1153,7 @@ def synthetic() -> dict:
             {"at": "doctor.remedy", "id": "sample:let-it-in", "for": "sample:guarded",
              "action": "Sign in", "why": "It is guarded"},
         ],
-        "requires": {"capabilities": ["service.add"]},
+        "requires": {"capabilities": ["service.add", "doctor.contribute"]},
     }
 
 
@@ -1155,6 +1246,12 @@ def self_test() -> int:
         ("a binding with a status the probe does not permit",
          lambda m: m["claim"][0]["probe"][0]["expect"].__setitem__("status", 200),
          "and the probe permits"),
+        ("a probe asserting the operator has put something there",
+         lambda m: m["claim"][0]["probe"][1]["expect"].__setitem__("json_array_min", 1),
+         "asserts the operator has put something there"),
+        ("a probe asserting a count of something the operator holds",
+         lambda m: m["claim"][0]["probe"][1]["expect"].__setitem__("json_at_least", {"total": 1}),
+         "asserts the operator has put something there"),
         ("a binding constraining no body where the probe requires one",
          lambda m: m["claim"][0]["probe"][1].__setitem__("expect", {"status": 200}),
          "constrains no body"),
@@ -1187,8 +1284,14 @@ def self_test() -> int:
         ("a contributed check with no remedy",
          lambda m: m["contribution"].pop(), "carries no remedy"),
         ("a remedy for a check this manifest did not declare",
-         lambda m: m["contribution"][1].__setitem__("for", "storage.hardlinks"),
+         lambda m: m["contribution"][1].__setitem__("for", "vibes.check"),
          "names no check this manifest declares"),
+        ("a remedy attached to a bundled check",
+         lambda m: m["contribution"][1].__setitem__("for", "storage.space"),
+         "the identity a bundled row already holds"),
+        ("contributions on a manifest that never asked to make one",
+         lambda m: m["requires"]["capabilities"].remove("doctor.contribute"),
+         "asks for 'doctor.contribute' by name"),
         ("a recipe on a manifest that never asked to run one",
          lambda m: m.__setitem__("recipe", [{
              "id": "seed", "title": "Seed it", "why": "Because",
@@ -1225,6 +1328,22 @@ def self_test() -> int:
         break_it(broken)
         if not refuses(label, broken, expected, published):
             return 1
+
+    # An artefact in a shape this cannot read is a refusal naming the artefact,
+    # never a stack trace: a gate that crashes is one nobody can tell apart from a
+    # manifest that is wrong.
+    listed = json.loads(json.dumps(SAMPLE_POINTS))
+    listed["points"][0]["row"]["enums"] = [{"field": "category", "values": ["services"]}]
+    if not refuses(
+        "an extension point publishing its closed sets in a shape this cannot read",
+        synthetic(), "in a shape this cannot read", Published(SAMPLE_VOCABULARY, listed),
+    ):
+        return 1
+
+    if read_published("/nowhere-at-all").asked:
+        print("::error::self-test: a directory that is not there read as published")
+        return 1
+    print("  ok   a directory that is not there is not a published set")
 
     # One pass, every violation: three faults at once, and all three named.
     broken = tomllib.loads((ROOT / MANIFEST).read_text(encoding="utf-8"))
@@ -1278,7 +1397,12 @@ def main() -> int:
 
     published = read_published(args.published)
     if args.published is not None and not published.asked:
-        print(f"::error::{args.published} carries neither {VOCABULARY} nor {EXTENSION_POINTS}")
+        missing = [
+            name for name, found in ((VOCABULARY, published.vocabulary),
+                                     (EXTENSION_POINTS, published.points))
+            if found is None
+        ]
+        print(f"::error::{args.published} does not carry {' or '.join(missing)}")
         return 1
 
     validate(manifest, report, published)

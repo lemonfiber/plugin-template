@@ -1,14 +1,64 @@
 # plugin-template
 
 **The plugin you copy.** One manifest, its recorded responses, and a workflow
-that runs the same commands the catalogue's CI runs — so the first thing you see
-is the bar you will be held to, and it is already green.
+running the commands a plugin is judged by — so the first thing you see is the
+bar you will be held to, and it is already green.
+
+## What a plugin is here
+
+Data. A plugin is a `plugin.toml` and a directory of recorded responses, and
+there is nowhere in the format to put code — contributed code is never executed,
+and no setting, sandbox or grant can make it so. What you are writing is a
+description: which image runs, what it can do, what must be true before it
+installs, and what it adds to the diagnostics lemonfiber already runs.
+lemonfiber reads that description and does the work, and it knows nothing about
+your plugin that this file does not say.
+
+That is what makes a stranger's plugin reviewable at all. There is nothing in it
+to judge except declarations — and every declaration here is either checked by
+the harness or demonstrated by a recording.
+
+## Start here
 
 ```sh
 gh repo create my-plugin --template lemonfiber/plugin-template
+cd my-plugin
+python3 .github/interim/validate.py    # green before you have changed anything
 ```
 
-Then replace the service, re-record the fixtures, and push.
+Then, roughly in this order:
+
+1. **`[plugin]`** — `id`, `name`, `description`, `upstream`, `license`. That
+   `license` is the *upstream service's*, and has nothing to do with this
+   repository's.
+2. **`[[service]]`** — `image`, `digest`, `tag`, `port`, `bind`, and
+   `config_path` if the image keeps its state somewhere other than `/config`.
+   Pin the digest: the tag is the readable name for it and is never resolved.
+3. **`health`** — start the image and time it, then write down what you
+   measured rather than a number that looks safe.
+4. **`provides`** — a core name out of lemonfiber's published vocabulary for
+   each contracted thing your service does, and namespaced names of your own
+   (`my-plugin:something`) for everything else.
+5. **`[[claim]]`** — one for every core name, binding every probe that
+   vocabulary declares for it.
+6. **`[[proof]]`** and **`fixtures/`** — record real responses off the image at
+   the digest you pinned, and delete the Kavita ones.
+7. **`[[contribution]]`** — the checks the doctor should run for your service,
+   each with a remedy. Namespaced with your plugin's id.
+8. **`targets.toml`** — the lemonfiber release you validated and proved
+   against.
+
+`python3 .github/interim/prove.py` after each recording tells you whether what
+you wrote down matches what you recorded. When something does not hold,
+`validate.py` names where in the manifest it is and what was expected, and
+reports every violation in one pass rather than the first.
+
+The harness is one artefact rather than two. `.github/interim/` lives here and
+is copied byte for byte into every plugin repository, and the reviewed catalogue
+[`F5-R1`](https://github.com/lemonfiber/spec/blob/main/10-functional/features/f-extensibility/f5-plugin-catalogue.md)
+asks for will run the same copy when it exists — which is `0.17.0`, and does not
+yet. What `F10-R7` asks for is that an author meets the bar in their own
+repository rather than in somebody else's pull request, and that is true today.
 
 ## Why it describes something real
 
@@ -30,7 +80,7 @@ proofs are proofs.
 | `fixtures/*.json` | Recorded responses, so everything provable is provable with no live instance anywhere |
 | `targets.toml` | Which lemonfiber release this is validated against. A CI fact, not a manifest one. |
 | `proofs.json` | The record the release train re-reads. Generated; CI fails if it is stale. |
-| `.github/interim/` | The stand-in harness, until `lemonfiber plugin validate` exists. Not part of what an operator installs. |
+| `.github/interim/` | The stand-in harness, until lemonfiber publishes a schema and validates a manifest itself. Not part of what an operator installs. |
 
 ## The shape, in the order the manifest carries it
 
@@ -51,6 +101,13 @@ says what must be shown; the `[[claim]]` says where to ask it on this service an
 what the answer must be, with a recording of that answer. Leave a probe unbound,
 or bind one with a weaker expectation than the probe permits, and the manifest is
 refused naming the probe.
+
+A probe asserts what the *service* does, never what the operator's library
+happens to hold. The catalogue probe here says "the answer reads as an array" and
+nothing about how long it is — a probe demanding a non-empty one would refuse to
+install on the machine of somebody who has not copied their books over yet. A
+contributed **check** is the opposite and may say exactly that, because a check
+reports on the stack rather than gating an install.
 
 **The proofs.** What must hold before this is installed. Every one asserts a
 body, never only a status — Docker publishes a port by putting a proxy in front
@@ -78,7 +135,7 @@ python3 .github/interim/validate.py                      # the manifest, offline
 python3 .github/interim/validate.py --published <dir>    # and the rules lemonfiber decides
 python3 .github/interim/vocabulary_gate.py               # fetches those artefacts and does both
 python3 .github/interim/prove.py                         # everything declared, against the recordings
-python3 .github/interim/prove.py --against http://127.0.0.1:5000
+python3 .github/interim/prove.py --against http://127.0.0.1:5057
 python3 .github/interim/image_gate.py                    # the digest, its tag, its signature state
 python3 .github/interim/schema_gate.py                   # fails the day the real schema lands
 ```
@@ -91,7 +148,18 @@ publishes, and **says which rules it did not decide** rather than passing them.
 
 A recording is a moment, and it is reviewed like the manifest: a fixture nobody
 can read is a place for something to hide. Record with the service running at the
-digest `plugin.toml` names, and write down what state it was in:
+digest `plugin.toml` names:
+
+```sh
+docker run --rm -p 5057:5000 \
+  docker.io/jvmilazz0/kavita@sha256:b9c671586db2a6a688da3cb4b45f1319cca33b01e6e760c8bf3c19d60101bdf2
+curl -si http://127.0.0.1:5057/api/health
+```
+
+The host port is deliberately not `5000`: macOS answers that one itself, with an
+AirPlay receiver that returns `403` to everything, and a recording made against
+it would be a recording of the wrong server. Then write down what state the
+service was in when it answered:
 
 ```json
 {
@@ -107,13 +175,58 @@ Moving the image pin means re-recording every fixture against the new image in
 the same change. A recording that describes a different image is worse than no
 recording.
 
+## The recipe this does not declare, and what one looks like
+
+`[[recipe]]` is in the format and is checked. It is **not** declared here, and the
+reason is worth copying rather than the block: a manifest declaring one asks for
+`recipe.run` by name, so a lemonfiber that cannot run recipes refuses it — and a
+template an author copies should not be one that installs nowhere.
+
+What one looks like, when the capability is offered:
+
+```toml
+[requires]
+capabilities = ["service.add", "service.health.http", "doctor.contribute", "recipe.run"]
+
+[[recipe]]
+id    = "adopt-the-library-the-stack-already-fills"
+title = "Point it at the comics on disk instead of asking the operator to"
+why   = "A reader with no library configured is a reader nobody can read anything in."
+
+[[recipe.step]]
+id      = "sign-in"
+call    = { method = "POST", to = "kavita", path = "/api/account/login" }
+expect  = { status = 200 }
+capture = [{ name = "token", from = "json.token", origin = "stack-service" }]
+
+[[recipe.step]]
+id     = "create"
+call   = { method = "POST", to = "kavita", path = "/api/library/create",
+           headers = { Authorization = "Bearer {{token}}" } }
+expect = { status = 200 }
+
+[[recipe.pair]]
+value = "token"
+to    = "kavita"
+```
+
+Three rules do the work, and the validator holds all three without running
+anything. Every destination is a **name** — a service in this stack or a DNS name
+outside it — never an address, a range or a bare host port, because a declared
+address is a declared address wherever it points and this machine sits beside a
+router's administration page. Every substitution refers to something an earlier
+step captured. And every value that could reach a destination has a
+`[[recipe.pair]]` behind it: a captured token going anywhere no pair permits is a
+validation failure found before a call is made, not after two have landed.
+
+The verbosity is the point. Three captures and two destinations are six possible
+flows, most of which a plugin will never want — and the ones it does not declare
+are the ones nobody has to wonder about afterwards.
+
 ## What is deliberately absent
 
 `[[secret]]` and `[[override]]`, because capturing a value and changing a bundled
-setting are recipe verbs and recipes arrive with `F8`. `[[recipe]]` itself, for
-the same reason: the block exists in the format and is checked, and a manifest
-declaring one asks for `recipe.run` by name — so a lemonfiber that cannot run one
-refuses the manifest rather than parsing the block and skipping it.
+setting are recipe verbs and recipes arrive with `F8`.
 
 A dashboard widget, because a widget reads a service's API with a credential, and
 a credential needs a recipe. A dashboard panel or a command of its own, because
@@ -124,4 +237,10 @@ cannot say which one.
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE).
+The plugin data in this repository is under the Hippocratic License 3.0
+(HL3-CORE) — see [LICENSE](LICENSE). Kavita itself is GPL-3.0-only and is not
+distributed here; this repository names an image, it does not contain one.
+
+`license` in `plugin.toml` is a fact about the upstream service and says nothing
+about the repository that declares it. Copying this template does not copy a
+licence decision: the copy is yours to license.
