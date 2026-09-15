@@ -52,6 +52,13 @@ what the answer must be, with a recording of that answer. Leave a probe unbound,
 or bind one with a weaker expectation than the probe permits, and the manifest is
 refused naming the probe.
 
+A probe asserts what the *service* does, never what the operator's library
+happens to hold. The catalogue probe here says "the answer reads as an array" and
+nothing about how long it is — a probe demanding a non-empty one would refuse to
+install on the machine of somebody who has not copied their books over yet. A
+contributed **check** is the opposite and may say exactly that, because a check
+reports on the stack rather than gating an install.
+
 **The proofs.** What must hold before this is installed. Every one asserts a
 body, never only a status — Docker publishes a port by putting a proxy in front
 of it, and that proxy accepts a connection before knowing whether anything inside

@@ -77,10 +77,16 @@ request = { method = "GET", path = "/api/library/libraries" }
 expect  = { status = 401 }
 fixture = "fixtures/media-serve-guarded.json"
 
+# `json_array_min = 0` is the assertion "the answer reads as an array", and
+# nothing about how long it is. That is deliberate: this service answers with a
+# list rather than an object, so none of the key-wise constraints can say anything
+# about it — and a probe demanding a *non-empty* list would refuse to install this
+# on the machine of somebody who has not copied their books over yet. What a check
+# may assert about the operator's own data, a probe may not.
 [[claim.probe]]
 id      = "catalogue"
 request = { method = "GET", path = "/api/library/libraries" }
-expect  = { status = 200, json_array_min = 1 }
+expect  = { status = 200, json_array_min = 0 }
 fixture = "fixtures/media-serve-catalogue.json"
 
 [wiring]
