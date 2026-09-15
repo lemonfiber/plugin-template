@@ -4,18 +4,61 @@
 running the commands a plugin is judged by — so the first thing you see is the
 bar you will be held to, and it is already green.
 
-Those commands are one artefact rather than two. `.github/interim/` lives here
-and is copied byte for byte into every plugin repository, and the reviewed
-catalogue [`F5-R1`](https://github.com/lemonfiber/spec/blob/main/10-functional/features/f-extensibility/f5-plugin-catalogue.md)
-asks for will run the same copy when it exists — which is `0.17.0`, and does not
-yet. What `F10-R7` asks for is that an author meets the bar in their own
-repository rather than in somebody else's pull request, and that is true today.
+## What a plugin is here
+
+Data. A plugin is a `plugin.toml` and a directory of recorded responses, and
+there is nowhere in the format to put code — contributed code is never executed,
+and no setting, sandbox or grant can make it so. What you are writing is a
+description: which image runs, what it can do, what must be true before it
+installs, and what it adds to the diagnostics lemonfiber already runs.
+lemonfiber reads that description and does the work, and it knows nothing about
+your plugin that this file does not say.
+
+That is what makes a stranger's plugin reviewable at all. There is nothing in it
+to judge except declarations — and every declaration here is either checked by
+the harness or demonstrated by a recording.
+
+## Start here
 
 ```sh
 gh repo create my-plugin --template lemonfiber/plugin-template
+cd my-plugin
+python3 .github/interim/validate.py    # green before you have changed anything
 ```
 
-Then replace the service, re-record the fixtures, and push.
+Then, roughly in this order:
+
+1. **`[plugin]`** — `id`, `name`, `description`, `upstream`, `license`. That
+   `license` is the *upstream service's*, and has nothing to do with this
+   repository's.
+2. **`[[service]]`** — `image`, `digest`, `tag`, `port`, `bind`, and
+   `config_path` if the image keeps its state somewhere other than `/config`.
+   Pin the digest: the tag is the readable name for it and is never resolved.
+3. **`health`** — start the image and time it, then write down what you
+   measured rather than a number that looks safe.
+4. **`provides`** — a core name out of lemonfiber's published vocabulary for
+   each contracted thing your service does, and namespaced names of your own
+   (`my-plugin:something`) for everything else.
+5. **`[[claim]]`** — one for every core name, binding every probe that
+   vocabulary declares for it.
+6. **`[[proof]]`** and **`fixtures/`** — record real responses off the image at
+   the digest you pinned, and delete the Kavita ones.
+7. **`[[contribution]]`** — the checks the doctor should run for your service,
+   each with a remedy. Namespaced with your plugin's id.
+8. **`targets.toml`** — the lemonfiber release you validated and proved
+   against.
+
+`python3 .github/interim/prove.py` after each recording tells you whether what
+you wrote down matches what you recorded. When something does not hold,
+`validate.py` names where in the manifest it is and what was expected, and
+reports every violation in one pass rather than the first.
+
+The harness is one artefact rather than two. `.github/interim/` lives here and
+is copied byte for byte into every plugin repository, and the reviewed catalogue
+[`F5-R1`](https://github.com/lemonfiber/spec/blob/main/10-functional/features/f-extensibility/f5-plugin-catalogue.md)
+asks for will run the same copy when it exists — which is `0.17.0`, and does not
+yet. What `F10-R7` asks for is that an author meets the bar in their own
+repository rather than in somebody else's pull request, and that is true today.
 
 ## Why it describes something real
 
@@ -37,7 +80,7 @@ proofs are proofs.
 | `fixtures/*.json` | Recorded responses, so everything provable is provable with no live instance anywhere |
 | `targets.toml` | Which lemonfiber release this is validated against. A CI fact, not a manifest one. |
 | `proofs.json` | The record the release train re-reads. Generated; CI fails if it is stale. |
-| `.github/interim/` | The stand-in harness, until `lemonfiber plugin validate` exists. Not part of what an operator installs. |
+| `.github/interim/` | The stand-in harness, until lemonfiber publishes a schema and validates a manifest itself. Not part of what an operator installs. |
 
 ## The shape, in the order the manifest carries it
 
@@ -183,4 +226,10 @@ cannot say which one.
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE).
+The plugin data in this repository is under the Hippocratic License 3.0
+(HL3-CORE) — see [LICENSE](LICENSE). Kavita itself is GPL-3.0-only and is not
+distributed here; this repository names an image, it does not contain one.
+
+`license` in `plugin.toml` is a fact about the upstream service and says nothing
+about the repository that declares it. Copying this template does not copy a
+licence decision: the copy is yours to license.
