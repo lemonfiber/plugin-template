@@ -107,13 +107,58 @@ Moving the image pin means re-recording every fixture against the new image in
 the same change. A recording that describes a different image is worse than no
 recording.
 
+## The recipe this does not declare, and what one looks like
+
+`[[recipe]]` is in the format and is checked. It is **not** declared here, and the
+reason is worth copying rather than the block: a manifest declaring one asks for
+`recipe.run` by name, so a lemonfiber that cannot run recipes refuses it — and a
+template an author copies should not be one that installs nowhere.
+
+What one looks like, when the capability is offered:
+
+```toml
+[requires]
+capabilities = ["service.add", "service.health.http", "doctor.contribute", "recipe.run"]
+
+[[recipe]]
+id    = "adopt-the-library-the-stack-already-fills"
+title = "Point it at the comics on disk instead of asking the operator to"
+why   = "A reader with no library configured is a reader nobody can read anything in."
+
+[[recipe.step]]
+id      = "sign-in"
+call    = { method = "POST", to = "kavita", path = "/api/account/login" }
+expect  = { status = 200 }
+capture = [{ name = "token", from = "json.token", origin = "stack-service" }]
+
+[[recipe.step]]
+id     = "create"
+call   = { method = "POST", to = "kavita", path = "/api/library/create",
+           headers = { Authorization = "Bearer {{token}}" } }
+expect = { status = 200 }
+
+[[recipe.pair]]
+value = "token"
+to    = "kavita"
+```
+
+Three rules do the work, and the validator holds all three without running
+anything. Every destination is a **name** — a service in this stack or a DNS name
+outside it — never an address, a range or a bare host port, because a declared
+address is a declared address wherever it points and this machine sits beside a
+router's administration page. Every substitution refers to something an earlier
+step captured. And every value that could reach a destination has a
+`[[recipe.pair]]` behind it: a captured token going anywhere no pair permits is a
+validation failure found before a call is made, not after two have landed.
+
+The verbosity is the point. Three captures and two destinations are six possible
+flows, most of which a plugin will never want — and the ones it does not declare
+are the ones nobody has to wonder about afterwards.
+
 ## What is deliberately absent
 
 `[[secret]]` and `[[override]]`, because capturing a value and changing a bundled
-setting are recipe verbs and recipes arrive with `F8`. `[[recipe]]` itself, for
-the same reason: the block exists in the format and is checked, and a manifest
-declaring one asks for `recipe.run` by name — so a lemonfiber that cannot run one
-refuses the manifest rather than parsing the block and skipping it.
+setting are recipe verbs and recipes arrive with `F8`.
 
 A dashboard widget, because a widget reads a service's API with a credential, and
 a credential needs a recipe. A dashboard panel or a command of its own, because
