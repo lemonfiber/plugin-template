@@ -1,0 +1,36 @@
+{
+  "lemonfiber": "0.16.0",
+  "against": "fixtures",
+  "proofs": [
+    {
+      "id": "kavita.serves",
+      "kind": "proof",
+      "outcome": "passed",
+      "detail": "HTTP 200, and the body it declares"
+    },
+    {
+      "id": "kavita.status-is-not-an-answer",
+      "kind": "proof",
+      "outcome": "passed",
+      "detail": "HTTP 200, and the body it declares"
+    },
+    {
+      "id": "media.serve/guarded",
+      "kind": "probe",
+      "outcome": "passed",
+      "detail": "HTTP 401, and the body it declares"
+    },
+    {
+      "id": "media.serve/catalogue",
+      "kind": "probe",
+      "outcome": "passed",
+      "detail": "HTTP 200, and the body it declares"
+    },
+    {
+      "id": "kavita:settings-guarded",
+      "kind": "check",
+      "outcome": "passed",
+      "detail": "HTTP 401, and the body it declares"
+    }
+  ]
+}
