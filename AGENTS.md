@@ -46,18 +46,21 @@ template whose proofs are invented teaches an author to invent proofs.
 ## Checks
 
 ```
-python3 .github/interim/validate.py --self-test
-python3 .github/interim/validate.py
-python3 .github/interim/vocabulary_gate.py
-python3 .github/interim/prove.py --against fixtures --report proofs.json
-python3 .github/interim/image_gate.py
-python3 .github/interim/schema_gate.py
+just ci
 ```
 
+Every gate CI runs over the contents of this repository, in CI's order. The jobs
+it leaves out are named in the `justfile` beside the recipe, with what covers
+each. `just` lists the recipes it is made of.
+
 `proofs.json` is generated and committed; CI fails when the committed one is not
-what the run would write.
+what the run would write. `prove.py` writes it only when given
+`--report proofs.json`, which is why the recipe passes the flag.
 
 ## Before you open a PR
 
-- Cite a spec identifier in a commit `Spec:` trailer and the PR body.
-- No AI attribution in commits.
+`just ci` turns this clone's git hooks on as its first step, and
+`.githooks/commit-msg` then refuses a commit that CI would refuse — a
+non-conventional subject, a missing sign-off, a missing `Spec:` citation, or a
+trailer crediting an assistant. All four rules are in
+[50-governance/contributing.md](https://github.com/lemonfiber/spec/blob/main/50-governance/contributing.md).
