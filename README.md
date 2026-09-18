@@ -23,8 +23,12 @@ the harness or demonstrated by a recording.
 ```sh
 gh repo create my-plugin --template lemonfiber/plugin-template
 cd my-plugin
-python3 .github/interim/validate.py    # green before you have changed anything
+just ci                                # green before you have changed anything
 ```
+
+`just ci` turns this clone's git hooks on as its first step, which is what makes
+`.githooks/commit-msg` say before a push what `commitlint`, `dco`, `spec-check`
+and `attribution` would say after one.
 
 Then, roughly in this order:
 
@@ -130,19 +134,33 @@ front of the service are all ways for it to stop refusing what it used to refuse
 ## Running the checks
 
 ```sh
+just ci                                                  # all of them, in CI's order
+```
+
+`just` lists the rest. Each is also a command:
+
+```sh
 python3 .github/interim/validate.py --self-test          # the gate refuses what it should
 python3 .github/interim/validate.py                      # the manifest, offline
 python3 .github/interim/validate.py --published <dir>    # and the rules lemonfiber decides
 python3 .github/interim/vocabulary_gate.py               # fetches those artefacts and does both
-python3 .github/interim/prove.py                         # everything declared, against the recordings
+python3 .github/interim/prove.py --against fixtures --report proofs.json
 python3 .github/interim/prove.py --against http://127.0.0.1:5057
 python3 .github/interim/image_gate.py                    # the digest, its tag, its signature state
 python3 .github/interim/schema_gate.py                   # fails the day the real schema lands
 ```
 
+`--report proofs.json` is the flag CI runs `prove.py` with, and it then compares
+the file against the committed one. Without it the assertions are proved and the
+report they are judged on is left alone, so a run that says everything passed can
+still be refused by `git diff --exit-code proofs.json`.
+
 `validate.py` on its own decides nothing that depends on knowing what lemonfiber
 publishes, and **says which rules it did not decide** rather than passing them.
 `vocabulary_gate.py` is the half that asks.
+
+`just ci` is every gate CI runs over the contents of this repository. The jobs it
+leaves out are named in the `justfile` beside the recipe, with what covers each.
 
 ## Recording a fixture
 
