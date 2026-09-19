@@ -46,7 +46,7 @@ so a rule that refused something lemonfiber accepts has been deleted rather than
 kept, and nothing is added here without checking the reader first.
 
     validate.py --published <dir>  the manifest, against the three artefacts
-    validate.py                    the rules that need none of them, which is few
+    validate.py                    the rules no published artefact decides
     validate.py --self-test        each rule refuses the shape it exists to refuse
 
 The three are fetched by `published_gate.py`; this reads them off a directory so
@@ -1337,18 +1337,8 @@ def self_test() -> int:
     return 0
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--self-test", action="store_true",
-                        help="prove each rule refuses the shape it exists to refuse")
-    parser.add_argument("--published", metavar="DIR",
-                        help=f"a directory holding lemonfiber's published {SCHEMA}, "
-                             f"{VOCABULARY} and {EXTENSION_POINTS}")
-    args = parser.parse_args()
-
-    if args.self_test:
-        return self_test()
-
+def held(directory: str | None) -> int:
+    """This repository's manifest, against whatever was published to hold it to."""
     path = ROOT / MANIFEST
     if not path.is_file():
         print(f"::error::{MANIFEST} is missing from the root of this plugin's source")
@@ -1361,22 +1351,18 @@ def main() -> int:
         print(f"::error file={MANIFEST}::not readable as TOML: {broken}")
         return 1
 
-    published = read_published(args.published)
-    if args.published is not None and not published.asked:
+    published = read_published(directory)
+    if directory is not None and not published.asked:
         missing = [
             name for name, found in ((SCHEMA, published.schema),
                                      (VOCABULARY, published.vocabulary),
                                      (EXTENSION_POINTS, published.points))
             if found is None
         ]
-        print(f"::error::{args.published} does not carry {' or '.join(missing)}")
+        print(f"::error::{directory} does not carry {' or '.join(missing)}")
         return 1
 
-    try:
-        validate(manifest, report, published)
-    except Unreadable as unread:
-        print(f"::error::{unread}")
-        return 1
+    validate(manifest, report, published)
 
     if report.faults:
         for fault in report.faults:
@@ -1397,6 +1383,26 @@ def main() -> int:
         "is answered by\nlemonfiber; this is a stand-in and the weaker of the two."
     )
     return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--self-test", action="store_true",
+                        help="prove each rule refuses the shape it exists to refuse")
+    parser.add_argument("--published", metavar="DIR",
+                        help=f"a directory holding lemonfiber's published {SCHEMA}, "
+                             f"{VOCABULARY} and {EXTENSION_POINTS}")
+    args = parser.parse_args()
+
+    # One place, because both ways in hold a manifest to a schema and the
+    # self-test does it against a sample one. A missing reader used to reach the
+    # self-test as a traceback, which is the shape this whole file refuses to
+    # answer anybody with.
+    try:
+        return self_test() if args.self_test else held(args.published)
+    except Unreadable as unread:
+        print(f"::error::{unread}")
+        return 1
 
 
 if __name__ == "__main__":
