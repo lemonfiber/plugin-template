@@ -53,9 +53,15 @@ Then, roughly in this order:
    against.
 
 `python3 .github/interim/prove.py` after each recording tells you whether what
-you wrote down matches what you recorded. When something does not hold,
-`validate.py` names where in the manifest it is and what was expected, and
-reports every violation in one pass rather than the first.
+you wrote down matches what you recorded. When something does not hold, the
+harness names where in the manifest it is and what was expected, and reports
+every violation in one pass rather than the first.
+
+**What a manifest may contain is not written down here.** It is
+`plugin-manifest.schema.json`, generated from the types lemonfiber reads a
+manifest with and published with every release — the one document your editor,
+this repository's CI and the catalogue all hold a manifest to. Point your editor
+at it and you get completion and inline validation with nothing installed.
 
 The harness is one artefact rather than two. `.github/interim/` lives here and
 is copied byte for byte into every plugin repository, and the reviewed catalogue
@@ -84,7 +90,7 @@ proofs are proofs.
 | `fixtures/*.json` | Recorded responses, so everything provable is provable with no live instance anywhere |
 | `targets.toml` | Which lemonfiber release this is validated against. A CI fact, not a manifest one. |
 | `proofs.json` | The record the release train re-reads. Generated; CI fails if it is stale. |
-| `.github/interim/` | The stand-in harness, until lemonfiber publishes a schema and validates a manifest itself. Not part of what an operator installs. |
+| `.github/interim/` | The stand-in harness, until `lemonfiber plugin claims` validates a manifest itself. It describes no part of the format — it fetches the published schema and holds this manifest to it. Not part of what an operator installs. |
 
 ## The shape, in the order the manifest carries it
 
@@ -141,13 +147,12 @@ just ci                                                  # all of them, in CI's 
 
 ```sh
 python3 .github/interim/validate.py --self-test          # the gate refuses what it should
-python3 .github/interim/validate.py                      # the manifest, offline
-python3 .github/interim/validate.py --published <dir>    # and the rules lemonfiber decides
-python3 .github/interim/vocabulary_gate.py               # fetches those artefacts and does both
+python3 .github/interim/validate.py --published <dir>    # the manifest, against a copy you hold
+python3 .github/interim/published_gate.py                # fetches the three and does that
 python3 .github/interim/prove.py --against fixtures --report proofs.json
 python3 .github/interim/prove.py --against http://127.0.0.1:5057
 python3 .github/interim/image_gate.py                    # the digest, its tag, its signature state
-python3 .github/interim/schema_gate.py                   # fails the day the real schema lands
+python3 .github/interim/reader_gate.py                   # fails the day the reader is released
 ```
 
 `--report proofs.json` is the flag CI runs `prove.py` with, and it then compares
@@ -155,9 +160,16 @@ the file against the committed one. Without it the assertions are proved and the
 report they are judged on is left alone, so a run that says everything passed can
 still be refused by `git diff --exit-code proofs.json`.
 
-`validate.py` on its own decides nothing that depends on knowing what lemonfiber
-publishes, and **says which rules it did not decide** rather than passing them.
-`vocabulary_gate.py` is the half that asks.
+`validate.py` decides nothing that depends on knowing what lemonfiber publishes
+— which is the shape of a manifest, which capability names exist and which
+points a contribution may be made at — and **says which rules it did not decide**
+rather than passing them. `published_gate.py` is the half that asks: it fetches
+the generated schema, the capability vocabulary and the extension points off
+lemonfiber's default branch on every run, so a manifest goes red the day a name
+it claims is withdrawn rather than one release later.
+
+It needs `jsonschema`, which is the one library this harness asks for and is a
+schema reader rather than anything that knows what a plugin is.
 
 `just ci` is every gate CI runs over the contents of this repository. The jobs it
 leaves out are named in the `justfile` beside the recipe, with what covers each.
