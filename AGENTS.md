@@ -36,12 +36,18 @@ template whose proofs are invented teaches an author to invent proofs.
   three verdicts stay three.
 - **No field beyond the contract's set.** A manifest carrying one is refused by
   name rather than ignored (`ARCH-R84`).
-- **Which names exist is lemonfiber's to say.** `validate.py` must never carry a
-  list of capability names or extension points — `F10-R2` forbids a second,
-  hand-maintained description of the format, and a second list would disagree
-  with the parser the day one was edited. Rules that need them are skipped and
-  **named as skipped**; `vocabulary_gate.py` fetches the published artefacts and
-  decides them.
+- **The format is lemonfiber's to describe, and nothing here describes it.**
+  `validate.py` must never carry a list of tables, fields, kinds, closed sets or
+  capability names — `F10-R2` forbids a second, hand-maintained description of
+  the format, and the one that used to live here had drifted from the parser in
+  seven places by the time it was removed. What a manifest may contain is the
+  generated schema's to say; rules that need it, or the vocabulary, or the
+  points, are skipped and **named as skipped**, and `published_gate.py` fetches
+  all three and decides them.
+- **A rule here must be one lemonfiber holds a manifest to.** Being weaker than
+  the binary is what a stand-in is. Refusing something lemonfiber accepts is the
+  defect, because an author then changes a manifest for no reason and the change
+  is invisible to everybody else. Check the reader before adding a rule.
 
 ## Checks
 
