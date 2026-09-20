@@ -89,7 +89,7 @@ request = { method = "GET", path = "/api/library/libraries" }
 expect  = { status = 200, json_array_min = 0 }
 fixture = "fixtures/media-serve-catalogue.json"
 
-[wiring]
+[[wiring]]
 # A label in front of the operator's own domain, never an address — and a word
 # the household would go there for rather than the name of the software.
 hostname        = "reader"

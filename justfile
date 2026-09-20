@@ -57,13 +57,21 @@ manifest:
 # Everything the manifest declares, against the recorded responses — and the
 # committed report is the one this run writes.
 #
+# The verdicts are `lemonfiber plugin claims`'s, not this harness's: it runs
+# every bound probe, every proof and every contributed check against the
+# recording it names, and `prove.py` asks it and writes down what it said.
+# Without a `lemonfiber` on the path — or a `$LEMONFIBER` naming one — every
+# assertion is unproven, which is what nothing having been asked means. CI
+# builds it from lemonfiber's own tree; `targets.toml` names the release that
+# will make that unnecessary.
+#
 # `--report proofs.json` is not optional. CI runs `prove.py` with it and then
-# `git diff --exit-code proofs.json`, so a run without the flag proves the
-# assertions and leaves the report it is about to be judged on untouched.
+# `git diff --exit-code proofs.json`, so a run without the flag reads the
+# verdicts and leaves the report it is about to be judged on untouched.
 #
 # Everything the manifest declares, and the report CI diffs.
 proofs:
-    python3 .github/interim/prove.py --against fixtures --report proofs.json
+    python3 .github/interim/prove.py --report proofs.json
     git diff --exit-code -- proofs.json
 
 # The declared digest is in the registry, the tag beside it still names it, and
