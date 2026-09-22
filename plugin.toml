@@ -89,7 +89,12 @@ request = { method = "GET", path = "/api/library/libraries" }
 expect  = { status = 200, json_array_min = 0 }
 fixture = "fixtures/media-serve-catalogue.json"
 
-[wiring]
+# A list, and one entry, because wiring is a fact about a service rather than
+# about a plugin (ARCH-R127). A template declaring one service names none in its
+# entry; add `service = "..."` to each the day this declares two, because a
+# hostname left to be inferred is an inference about which one the household
+# reaches.
+[[wiring]]
 # A label in front of the operator's own domain, never an address — and a word
 # the household would go there for rather than the name of the software.
 hostname        = "reader"
