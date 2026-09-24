@@ -230,6 +230,11 @@ What one looks like:
 [requires]
 capabilities = ["service.add", "service.health.http", "doctor.contribute", "recipe.run"]
 
+[[secret]]
+id  = "token"
+of  = "kavita"
+why = "Kavita answers a library being created only to a signed-in administrator."
+
 [[recipe]]
 id    = "adopt-the-library-the-stack-already-fills"
 title = "Point it at the comics on disk instead of asking the operator to"
@@ -260,6 +265,12 @@ router's administration page. Every substitution refers to something an earlier
 step captured. And every value that could reach a destination has a
 `[[recipe.pair]]` behind it: a captured token going anywhere no pair permits is a
 validation failure found before a call is made, not after two have landed.
+
+The `[[secret]]` above is not one of the three, and it is not optional either:
+every value a step captures has to be declared as a secret of the same `id`, and
+lemonfiber refuses a manifest whose recipe takes out a value no `[[secret]]`
+names. What installing a plugin commits the operator to holding is something they
+read in the manifest, not something they find out afterwards.
 
 The verbosity is the point. Three captures and two destinations are six possible
 flows, most of which a plugin will never want — and the ones it does not declare
