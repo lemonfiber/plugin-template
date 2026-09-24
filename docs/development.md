@@ -248,9 +248,13 @@ capture = [{ name = "token", from = "json.token", origin = "stack-service" }]
 
 [[recipe.step]]
 id     = "create"
-call   = { method = "POST", to = "kavita", path = "/api/library/create",
-           headers = { Authorization = "Bearer {{token}}" } }
 expect = { status = 200 }
+
+[recipe.step.call]
+method  = "POST"
+to      = "kavita"
+path    = "/api/library/create"
+headers = { Authorization = "Bearer {{token}}" }
 
 [[recipe.pair]]
 value = "token"
