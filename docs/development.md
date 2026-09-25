@@ -59,10 +59,10 @@ Then, roughly in this order:
    to your service, and check every sentence against your `plugin.toml`. It is
    what somebody deciding whether to install your plugin reads.
 
-`python3 .github/interim/prove.py` after each recording tells you whether what
-you wrote down matches what you recorded. When something does not hold, the
-harness names where in the manifest it is and what was expected, and reports
-every violation in one pass rather than the first.
+`just proofs` after each recording tells you whether what you wrote down
+matches what you recorded. When something does not hold, lemonfiber names where
+in the manifest it is and what was expected, and reports every violation in one
+pass rather than the first.
 
 **What a manifest may contain is not written down here.** It is
 `plugin-manifest.schema.json`, generated from the types lemonfiber reads a
@@ -72,7 +72,7 @@ in lemonfiber's repository — the one document your editor, this repository's C
 and the catalogue all hold a manifest to. Point your editor at it and you get
 completion and inline validation with nothing installed.
 
-The harness is one artefact rather than two. `.github/interim/` lives here and
+The harness is one artefact rather than two. `.github/reader/` lives here and
 is copied byte for byte into every plugin repository and into the reviewed
 catalogue, [`lemonfiber-plugins`](https://github.com/lemonfiber/lemonfiber-plugins),
 whose `harness` job fails when its copy differs from this one. What `F10-R7`
@@ -101,7 +101,7 @@ proofs are proofs.
 | `fixtures/*.json` | Recorded responses, so everything provable is provable with no live instance anywhere |
 | `targets.toml` | Which lemonfiber release this is validated against. A CI fact, not a manifest one. |
 | `proofs.json` | The record the release train re-reads. Generated; CI fails if it is stale. |
-| `.github/interim/` | The CI harness. It stands in for `lemonfiber plugin claims`, which is on lemonfiber's `main` branch and in no release. It describes no part of the format — it fetches the published schema and holds this manifest to it. Not part of what an operator installs. |
+| `.github/reader/` | The CI harness. It fetches the lemonfiber release `targets.toml` names, checks it against its published digest, and asks it `lemonfiber plugin claims` and `lemonfiber plugin provenance`. It describes no part of the format and decides no verdict. Not part of what an operator installs. |
 
 ## The shape, in the order the manifest carries it
 
@@ -157,30 +157,25 @@ just ci                                                  # all of them, in CI's 
 `just` lists the rest. Each is also a command:
 
 ```sh
-python3 .github/interim/validate.py --self-test          # the gate refuses what it should
-python3 .github/interim/validate.py --published <dir>    # the manifest, against a copy you hold
-python3 .github/interim/published_gate.py                # fetches the three and does that
-python3 .github/interim/prove.py --against fixtures --report proofs.json
-python3 .github/interim/prove.py --against http://127.0.0.1:5057
-python3 .github/interim/image_gate.py                    # the digest, its tag, its signature state
-python3 .github/interim/reader_gate.py                   # fails the day the reader is released
+python3 .github/reader/reader.py reader     # the release targets.toml names, and what it says here
+python3 .github/reader/reader.py manifest   # every refusal it makes of the manifest
+python3 .github/reader/reader.py proofs     # every assertion on its recording; writes proofs.json
+python3 .github/reader/reader.py image      # the digests, their tags, what vouches for them
 ```
 
-`--report proofs.json` is the flag CI runs `prove.py` with, and it then compares
-the file against the committed one. Without it the assertions are proved and the
-report they are judged on is left alone, so a run that says everything passed can
-still be refused by `git diff --exit-code proofs.json`.
+The first run fetches the release into `.lemonfiber/`, which git ignores, and
+checks it against the digest published with it. Each command then asks it:
+`lemonfiber plugin claims .` answers the first three and `lemonfiber plugin
+provenance .` the last, and running either yourself gives the same answer in
+full.
 
-`validate.py` decides nothing that depends on knowing what lemonfiber publishes
-— which is the shape of a manifest, which capability names exist and which
-points a contribution may be made at — and **says which rules it did not decide**
-rather than passing them. `published_gate.py` is the half that asks: it fetches
-the generated schema, the capability vocabulary and the extension points off
-lemonfiber's default branch on every run, so a manifest goes red the day a name
-it claims is withdrawn rather than one release later.
+`reader.py proofs` writes `proofs.json` every time, and CI then compares the file
+against the committed one, so a run that says everything passed can still be
+refused by `git diff --exit-code proofs.json`.
 
-It needs `jsonschema`, which is the one library this harness asks for and is a
-schema reader rather than anything that knows what a plugin is.
+A capability in `[requires]` that the release does not offer a plugin is the one
+refusal reported without failing: it says the plugin would not be installed on
+that release, which naming the release in `targets.toml` does not claim.
 
 `just ci` is every gate CI runs over the contents of this repository. The jobs it
 leaves out are named in the `justfile` beside the recipe, with what covers each.
