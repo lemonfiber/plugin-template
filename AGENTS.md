@@ -8,10 +8,11 @@ Guidance for any AI agent working in this repo.
 
 ## What this repo is
 
-The plugin an author copies, and the **canonical home of the interim CI
-harness**. `plugin-komga` and `plugin-uptime-kuma` carry byte-identical copies of
-`.github/interim/` and each has a job that fails when its copy drifts from this
-one. Change the harness here, then copy it to both; changing it there fails.
+The plugin an author copies, and the **canonical home of the CI harness**.
+`plugin-komga`, `plugin-uptime-kuma`, `plugin-plex` and `lemonfiber-plugins` carry
+byte-identical copies of `.github/reader/`, and the ones with a `harness` job fail
+when their copy drifts from this one. Change the harness here, then copy it out;
+changing it there fails.
 
 The plugin itself describes Kavita, and it describes something real on purpose:
 `F10-R7` asks for a template that validates and proves *unmodified*, and a
@@ -21,8 +22,8 @@ template whose proofs are invented teaches an author to invent proofs.
 
 - **Nothing here executes.** A plugin is declarative data (`F3-R1`), and
   contributed code is never run, under any opt-in (`F3-R6`). The Python under
-  `.github/interim/` is CI harness, is not part of what an operator installs,
-  and is deleted when lemonfiber's own verbs replace it.
+  `.github/reader/` is CI harness and is not part of what an operator installs:
+  it fetches the lemonfiber release `targets.toml` names and asks it.
 - **The plugin is `plugin.toml` and `fixtures/`.** Proofs, claims and
   contributions live in the manifest, not beside it: an installer reads one file,
   and something the installer never reads cannot be what `F3-R4` refuses an
@@ -37,17 +38,9 @@ template whose proofs are invented teaches an author to invent proofs.
 - **No field beyond the contract's set.** A manifest carrying one is refused by
   name rather than ignored (`ARCH-R84`).
 - **The format is lemonfiber's to describe, and nothing here describes it.**
-  `validate.py` must never carry a list of tables, fields, kinds, closed sets or
-  capability names — `F10-R2` forbids a second, hand-maintained description of
-  the format, and the one that used to live here had drifted from the parser in
-  seven places by the time it was removed. What a manifest may contain is the
-  generated schema's to say; rules that need it, or the vocabulary, or the
-  points, are skipped and **named as skipped**, and `published_gate.py` fetches
-  all three and decides them.
-- **A rule here must be one lemonfiber holds a manifest to.** Being weaker than
-  the binary is what a stand-in is. Refusing something lemonfiber accepts is the
-  defect, because an author then changes a manifest for no reason and the change
-  is invisible to everybody else. Check the reader before adding a rule.
+  `reader.py` carries no list of tables, fields, kinds, closed sets or capability
+  names, and decides no verdict: `F10-R2` forbids a second description of the
+  format, and every verdict CI reports is `lemonfiber plugin claims`'s own.
 
 ## Checks
 
@@ -60,8 +53,7 @@ it leaves out are named in the `justfile` beside the recipe, with what covers
 each. `just` lists the recipes it is made of.
 
 `proofs.json` is generated and committed; CI fails when the committed one is not
-what the run would write. `prove.py` writes it only when given
-`--report proofs.json`, which is why the recipe passes the flag.
+what the run would write. `reader.py proofs` writes it on every run.
 
 ## Before you open a PR
 
