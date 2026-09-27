@@ -1,7 +1,7 @@
 # What this repository says about its own plugin, before anybody reads the diff.
 #
 # `F3-R9` asks for the manifest schema to be validated in CI so a malformed
-# contribution is caught before merge, and `F5-R2` asks for every declared proof
+# contribution is caught before merge, and `F5-R13` asks for every declared proof
 # to run. `F10-R7` is the reason both run *here* rather than only in the
 # catalogue: an author's own repository has to run the same commands the
 # catalogue runs, or the first time a plugin meets them is in somebody else's
@@ -50,10 +50,13 @@ jobs:
         run: python3 .github/reader/reader.py manifest
 
   # Every probe, proof and contributed check, against the recording it names,
-  # which is what lets this run with no live instance anywhere (F10-R4). Anything
-  # that did not pass fails, unproven included (F3-R5). The report is committed,
-  # so a run that would write a different one fails rather than silently
-  # disagreeing with the record the release train reads.
+  # which is what lets this run with no live instance anywhere (F10-R4). One
+  # failing on a recording its manifest declares it fails on, on the constraint
+  # the declaration names, is reported as failing as declared with the reason,
+  # and fails nothing (F10-R13). Anything else that did not pass fails, unproven
+  # included (F3-R5). The report is committed, so a run that would write a
+  # different one fails rather than silently disagreeing with the record the
+  # release train reads.
   proofs:
     runs-on: ubuntu-latest
     steps:
@@ -93,3 +96,19 @@ jobs:
           python-version: "3.12"
       - name: The images this plugin installs
         run: python3 .github/reader/reader.py image
+
+  # What the reader writes down and fails on, given what a release said: every
+  # verdict as it was given, and failing as declared apart from passed and failed
+  # with the declaration behind it (F10-R13). No release is fetched; the verdicts
+  # are the release's, and this is the part that is the reader's.
+  reader-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: The reader writes down what the release said
+        run: python3 -m unittest discover -s .github/reader
