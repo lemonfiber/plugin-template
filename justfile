@@ -37,7 +37,15 @@ hooks:
 #                                              a manifest
 #
 # Every gate CI runs over this repository's contents — not the whole of CI.
-ci: hooks reader manifest proofs image typos links
+ci: hooks reader-tests reader manifest proofs image typos links
+
+# What the reader writes down and fails on, given what a release said. No
+# release is fetched: the verdicts are the release's own, and these hold the
+# reader to writing them down as given, failing as declared apart.
+#
+# The reader's own tests.
+reader-tests:
+    python3 -m unittest discover -s .github/reader
 
 # The release `targets.toml` names, fetched once into `.lemonfiber/` and checked
 # against its published digest, and what it says of this plugin. A capability it
