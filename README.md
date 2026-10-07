@@ -7,6 +7,10 @@
   change for a loopback service or one that takes no data. Every sentence should
   stay true of the plugin you ship: check each one against your plugin.toml.
 
+  If the lemonfiber release in targets.toml would not install your plugin (CI
+  prints "would not install this"), say so at the top of this README, and name
+  what it asks for that lemonfiber does not offer.
+
   How to write the plugin itself is in docs/development.md.
 -->
 
@@ -59,9 +63,12 @@ Get a copy of this repository, then ask lemonfiber what installing it would do.
 
 ```sh
 git clone {repository URL}
-lemonfiber plugin install {repository directory} --dry-run
-lemonfiber plugin install {repository directory}
+lemonfiber plugin install ./{repository directory} --dry-run
+lemonfiber plugin install ./{repository directory}
 ```
+
+Keep the `./`: it marks a directory on this machine rather than the name of a
+plugin in the catalogue.
 
 When you install, lemonfiber:
 
@@ -76,8 +83,9 @@ When you install, lemonfiber:
 5. Records {Service} as installed only when all of that holds. If anything
    fails, it puts back everything it wrote, and your machine is as it was.
 
-`lemonfiber plugin installed` lists what is installed, where each plugin came
-from, and how each of its services is reached.
+[Installing a plugin](https://docs.lemonfiber.app/plugins/installing-a-plugin/)
+explains each step in more detail. `lemonfiber plugin installed` lists what is
+installed, where each plugin came from, and how each of its services is reached.
 
 ## Set it up
 
@@ -130,8 +138,8 @@ Get the newer version of this repository, then update from it:
 
 ```sh
 git -C {repository directory} pull
-lemonfiber plugin update {repository directory} --dry-run
-lemonfiber plugin update {repository directory}
+lemonfiber plugin update ./{repository directory} --dry-run
+lemonfiber plugin update ./{repository directory}
 ```
 
 The new version is checked and proved the way an install is. Your machine is on

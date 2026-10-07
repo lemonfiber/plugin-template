@@ -22,6 +22,19 @@ That is what makes a stranger's plugin reviewable at all. There is nothing in it
 to judge except declarations — and every declaration here is either checked by
 the harness or demonstrated by a recording.
 
+## What lemonfiber installs today
+
+A manifest names what it needs from lemonfiber in `[requires].capabilities`, and
+lemonfiber refuses to install one that asks for something it does not offer.
+lemonfiber 0.16.0, the release `targets.toml` names, offers a plugin
+`doctor.contribute` and nothing else. A plugin that adds a service, as this one
+does, also asks for `service.add` and `service.health.http`, so lemonfiber
+validates and proves it and then refuses to install it, naming both.
+
+CI reports that as a notice, not a failure: `just ci` is green, and the `reader`
+step prints `0.16.0 would not install this`. Say so at the top of your README
+until lemonfiber offers what your plugin asks for.
+
 ## Start here
 
 ```sh
@@ -75,16 +88,16 @@ completion and inline validation with nothing installed.
 The harness is one artefact rather than two. `.github/reader/` lives here and
 is copied byte for byte into every plugin repository and into the reviewed
 catalogue, [`lemonfiber-plugins`](https://github.com/lemonfiber/lemonfiber-plugins),
-whose `harness` job fails when its copy differs from this one. What `F10-R7`
-asks for is that an author meets the bar in their own repository rather than in
-somebody else's pull request.
+whose `harness` job fails when its copy differs from this one. So you meet the
+catalogue's bar in your own repository, before you ever open a pull request to
+the catalogue.
 
 ## Why it describes something real
 
-[`F10-R7`](https://github.com/lemonfiber/spec/blob/main/10-functional/features/f-extensibility/f10-authoring.md)
-asks for a template that **validates and proves unmodified**. A template whose
-proofs are invented would satisfy that sentence and teach an author to invent
-proofs, so this one describes Kavita — a comics, manga and ebook reader — and
+The template has to **validate and prove unmodified**
+([authoring requirements](https://github.com/lemonfiber/spec/blob/main/10-functional/features/f-extensibility/f10-authoring.md)).
+A template whose proofs are invented would pass that bar and teach an author to
+invent proofs, so this one describes Kavita — a comics, manga and ebook reader — and
 every recording under `fixtures/` came off that image at the digest
 `plugin.toml` names.
 
@@ -100,13 +113,13 @@ proofs are proofs.
 | `plugin.toml` | The whole of what lemonfiber will act on. Identity, the service, the capability it claims, the proofs, the checks it contributes. |
 | `fixtures/*.json` | Recorded responses, so everything provable is provable with no live instance anywhere |
 | `targets.toml` | Which lemonfiber release this is validated against. A CI fact, not a manifest one. |
-| `proofs.json` | The record the release train re-reads. Generated; CI fails if it is stale. |
+| `proofs.json` | The outcome of every proof, which lemonfiber's release process re-reads. Generated; CI fails if it is stale. |
 | `.github/reader/` | The CI harness. It fetches the lemonfiber release `targets.toml` names, checks it against its published digest, and asks it `lemonfiber plugin claims` and `lemonfiber plugin provenance`. It describes no part of the format and decides no verdict. Not part of what an operator installs. |
 
 ## The shape, in the order the manifest carries it
 
 **The service.** Which image runs, at which digest, on which port, and whether
-that port is an admin surface or a household one. Not how the container is
+that port is for administration on this machine or for the household. Not how the container is
 assembled — lemonfiber writes that, which is what makes *what can this plugin
 reach* answerable from the format rather than from the instance.
 
@@ -215,9 +228,9 @@ recording.
 
 `[[recipe]]` is in the format and is checked. It is **not** declared here, and the
 reason is worth copying rather than the block: a manifest declaring one asks for
-`recipe.run` by name, so a lemonfiber that cannot run recipes refuses it. The
-lemonfiber on `main` does not offer `recipe.run`, and a template an author copies
-should not be one that installs nowhere.
+`recipe.run` by name, so a lemonfiber that cannot run recipes refuses it.
+lemonfiber does not offer `recipe.run`, and a template an author copies should
+not be one that installs nowhere.
 
 What one looks like:
 
