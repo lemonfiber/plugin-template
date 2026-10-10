@@ -4,8 +4,9 @@
 # `release/adapter-pin` naming the adapter image its tag published. Once that
 # pull request merges, the merge commit is the revision whose manifest names
 # that image, and `bundle-bump` in lemonfiber-plugins moves the bundle's pin and
-# copy to it. A plugin the bundle does not pin is refused there, so a copy of
-# this repository that is not in the bundle moves nothing.
+# copy to it. It is told this repository's address, and refuses a plugin the
+# bundle does not pin from here, so a copy of this repository moves nothing but
+# its own pin.
 name: bundle
 on:
   pull_request:
@@ -54,6 +55,7 @@ jobs:
           OWNER: ${{ github.repository_owner }}
           PLUGIN: ${{ steps.plugin.outputs.id }}
           REVISION: ${{ github.event.pull_request.merge_commit_sha }}
+          ORIGIN: ${{ github.server_url }}/${{ github.repository }}
           AUTHOR: ${{ github.event.pull_request.user.login }}
           BOT: ${{ steps.token.outputs.app-slug }}[bot]
         run: |
@@ -64,5 +66,5 @@ jobs:
             || { echo "::error::the merge named no commit: '${REVISION}'"; exit 1; }
           gh api --method POST \
             "repos/${OWNER}/lemonfiber-plugins/actions/workflows/bundle-bump.yml/dispatches" \
-            -f ref=main -f "inputs[id]=${PLUGIN}" -f "inputs[revision]=${REVISION}"
+            -f ref=main -f "inputs[id]=${PLUGIN}" -f "inputs[revision]=${REVISION}" -f "inputs[origin]=${ORIGIN}"
           echo "asked lemonfiber-plugins to pin ${PLUGIN} at ${REVISION}."
