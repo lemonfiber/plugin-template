@@ -15,5 +15,12 @@
 # so every verdict CI reports is this release's own. Naming it is not a claim the
 # plugin installs on it: a capability in `[requires]` the release does not offer
 # is reported by name (`F3-R21`) rather than failed on.
+#
+# A plugin that needs what lemonfiber has on `main` and no release carries yet
+# names that commit in full instead, `commit = "<40 hex>"`, and no release at
+# all. The reader refuses a commit `main` does not hold, builds the one it
+# does the way the release train builds the build it is about to tag, keeps it in
+# `.lemonfiber/` under the commit, and asks it the same questions. The
+# manifest's `#:schema` line then names the schema committed at that commit.
 
 lemonfiber = "0.16.0"
