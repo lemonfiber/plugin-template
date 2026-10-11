@@ -291,6 +291,64 @@ The verbosity is the point. Three captures and two destinations are six possible
 flows, most of which a plugin will never want — and the ones it does not declare
 are the ones nobody has to wonder about afterwards.
 
+## A bundled part
+
+`bundled-part/` is the variant a first-party part of the stack lemonfiber ships
+starts from: one service, no adapter, no Rust and no Python. It describes
+SABnzbd as the stack carries it, with the starting file and the recordings the
+stack held, and the
+[bundle contract](https://github.com/lemonfiber/spec/blob/main/20-architecture/contracts/bundle.md)
+says how the catalogue pins such a part and how lemonfiber carries it.
+
+A part's repository is this repository with `bundled-part/` laid over its
+root, and `registry/convert.py` in
+[lemonfiber-plugins](https://github.com/lemonfiber/lemonfiber-plugins) writes it
+from the part's description in the media stack:
+
+- **Taken from `bundled-part/`:** `targets.toml`, `justfile`, `.gitignore`,
+  `.github/dependabot.yml` and its workflows.
+- **The part's own, in place of the variant's:** `plugin.toml`, `proofs.json`,
+  `config/<id>/` and `recordings/<id>/`, and a `README.md` and an `AGENTS.md`
+  that say for the part what the variant's say for SABnzbd.
+- **Kept from the root:** `.editorconfig`, `.githooks/`, `.markdownlint.jsonc`,
+  `typos.toml`, `LICENSE`, `CLAUDE.md`, `.github/CODEOWNERS`,
+  `.github/labeler.yml`, and the `labels` and `stale` workflows.
+- **Dropped:** `fixtures/`, the root's `proofs.json`, `.github/reader/`,
+  `ruff.toml`, `docs/`, and the `bundle` workflow, which only a part that builds
+  an image runs.
+
+A workflow `bundled-part/` holds replaces the root's of the same name.
+
+What changes from the plugin above:
+
+- **The id is the service's.** `[plugin].id` is the id of the one service, so
+  the container, `./config/<id>`, the settings and the journal keep the names
+  the stack gave them.
+- **It declares `replaces` naming its own id.** That is how a manifest takes the
+  id, the port and the hostname the bundle reserves for the part (`ARCH-R222`);
+  any other service taking one is refused.
+- **Its starting files sit in `config/<id>/`**, at most 64 files and 1 MiB, with
+  no symbolic link, and lemonfiber writes each into the service's configuration
+  directory.
+- **Its recordings sit in `recordings/<id>/`**, the paths the stack held them
+  at, so the bundle's copy of the tree keeps every path.
+- **It declares `reaches` and `asks_for`** on its service, as every first-party
+  service does, and `api` where lemonfiber reaches it through an in-process
+  adapter while the bundle assembles it.
+- **It names no profile and no form beyond its own `forms`.** The bundle places
+  the part in a profile, and `forms` names exactly the forms whose closure holds
+  it.
+- **Its CI is spec's.** `plugin.yml` calls spec's `first-party-plugin`
+  workflow, which takes this repository's reader at a pinned commit and runs
+  `manifest`, `proofs` and `image` as one job, skipped where nothing it reads
+  changed. CodeQL analyses the workflows alone, when a change touches
+  `.github/`, and the Sonar gate is told no code changed.
+- **It is never tagged.** Its image is the upstream's, so the catalogue pins a
+  revision and the digest of its tree, and a person moves the pin.
+
+The template's own `plugin` workflow judges `bundled-part/` with that same
+workflow, so the variant holds as the repositories made from it do.
+
 ## What is deliberately absent
 
 `[[secret]]` and `[[override]]`, because capturing a value and changing a bundled
