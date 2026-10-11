@@ -19,6 +19,11 @@ The plugin itself describes Kavita, and it describes something real on purpose:
 `F10-R7` asks for a template that validates and proves *unmodified*, and a
 template whose proofs are invented teaches an author to invent proofs.
 
+`bundled-part/` is the variant a first-party part of the stack starts from: one
+service, no adapter and no Python, its CI spec's `first-party-plugin` workflow.
+It describes SABnzbd as the stack carries it. `docs/development.md` says what a
+part's repository takes from it.
+
 ## The rules you cannot break
 
 - **Nothing here executes.** A plugin is declarative data (`F3-R1`), and

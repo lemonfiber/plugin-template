@@ -17,7 +17,7 @@ hooks:
 # Every gate CI runs over the contents of this repository, in the order CI runs
 # them, plus the hooks that answer for the commit message.
 #
-# Six jobs are not here, and naming them is the point — a recipe that claims to
+# These jobs are not here, and naming them is the point — a recipe that claims to
 # be CI and is a subset of it teaches people to skip it and read the run instead.
 #
 #   commitlint, dco, attribution, spec-check   `.githooks/commit-msg` refuses all
@@ -35,6 +35,9 @@ hooks:
 #                                              `actionlint` are the two commands
 #   osv-scanner, gitleaks, label               forge-side, and decide nothing about
 #                                              a manifest
+#   bundled-part                               spec's first-party-plugin workflow
+#                                              judges bundled-part/ in CI, with
+#                                              the reader at the commit it pins
 #
 # Every gate CI runs over this repository's contents — not the whole of CI.
 ci: hooks reader-tests reader manifest proofs image typos links

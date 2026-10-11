@@ -4,7 +4,8 @@
 #
 #   gates     gates / gates
 #   pin-only  pin-only / pin-only
-#   plugin    reader, manifest, proofs, image, reader-tests
+#   plugin    reader, manifest, proofs, image, reader-tests,
+#             bundled-part / what changed, bundled-part / plugin
 #   codeql    analyze (actions), analyze (python), alerts / alerts
 #   sonar     gate / gate
 #
