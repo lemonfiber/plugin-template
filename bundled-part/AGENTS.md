@@ -17,9 +17,11 @@ says how the catalogue pins it and how lemonfiber carries it.
 
 - **The plugin id is the service's id** (`ARCH-R266`). The container, the
   configuration directory, the settings and the journal keep their names.
-- **One service, speaking no contract**, while the bundle assembles it. Its
-  claims' recordings sit under `recordings/sabnzbd/`, and its starting files
-  under `config/sabnzbd/` (`ARCH-R271`).
+- **One service, speaking no contract**, while the bundle assembles it. It
+  declares `replaces` naming its own id, which is how it takes the id, the port
+  and the hostname the bundle reserves for it (`ARCH-R222`).
+- **Its claims' recordings sit under `recordings/sabnzbd/`**, and its starting
+  files, where it has any, under `config/sabnzbd/` (`ARCH-R271`).
 - **Every service declares `reaches` and `asks_for`** (`ARCH-R270`).
 - **No Python here.** The reader is spec's `first-party-plugin` workflow's.
 - **The image is SABnzbd's own**, so this repository is never tagged. Moving

@@ -4,19 +4,20 @@
 
 # SABnzbd for lemonfiber
 
-**Downloads from Usenet.** SABnzbd is one of the parts the stack lemonfiber
-ships is built from. Without it, there are no Usenet downloads.
+**Downloads from Usenet.**
+SABnzbd is one of the parts the stack lemonfiber ships is built from.
+Without it: No Usenet downloads.
 
 ## How lemonfiber carries it
 
 The default bundle in
 [lemonfiber-plugins](https://github.com/lemonfiber/lemonfiber-plugins) pins this
 repository by a revision and the digests of its manifest and its tree, and
-lemonfiber compiles that tree in. Until SABnzbd's adapter ships, lemonfiber
-assembles it into the stack it ships as a stack service and reaches it through
-the in-process adapter its `api` names. Its image is SABnzbd's own, so the
-release train never tags this repository, and its pin moves by a reviewed pull
-request on the catalogue.
+lemonfiber compiles that tree in.
+Until its adapter ships, lemonfiber assembles SABnzbd into the stack it ships as a
+stack service, and reaches it through the in-process adapter its `api` names.
+Its image is SABnzbd's own, so the release train never tags this repository, and
+its pin moves by a reviewed pull request on the catalogue.
 
 ## What is here
 

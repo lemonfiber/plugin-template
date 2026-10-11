@@ -28,6 +28,7 @@ provides    = ["download.usenet"]
 api         = { kind = "sabnzbd", key_source = "config-ini", path = "/config/sabnzbd.ini" }
 takes_data  = true
 user_mode   = "puid-env"
+replaces    = "sabnzbd"
 
 [[claim]]
 capability = "download.usenet"
