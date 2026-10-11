@@ -67,7 +67,8 @@ Then, roughly in this order:
 7. **`[[contribution]]`** — the checks the doctor should run for your service,
    each with a remedy. Namespaced with your plugin's id.
 8. **`targets.toml`** — the lemonfiber release you validated and proved
-   against.
+   against, or, while what your plugin needs is on lemonfiber's `main` and in no
+   release, that commit in full as `commit = "<40 hex>"`.
 9. **`README.md`** — fill in every `{placeholder}`, delete what does not apply
    to your service, and check every sentence against your `plugin.toml`. It is
    what somebody deciding whether to install your plugin reads.
@@ -112,9 +113,9 @@ proofs are proofs.
 | `docs/development.md` | This page. |
 | `plugin.toml` | The whole of what lemonfiber will act on. Identity, the service, the capability it claims, the proofs, the checks it contributes. |
 | `fixtures/*.json` | Recorded responses, so everything provable is provable with no live instance anywhere |
-| `targets.toml` | Which lemonfiber release this is validated against. A CI fact, not a manifest one. |
+| `targets.toml` | Which lemonfiber release, or which commit of its `main`, this is validated against. A CI fact, not a manifest one. |
 | `proofs.json` | The outcome of every proof, which lemonfiber's release process re-reads. Generated; CI fails if it is stale. |
-| `.github/reader/` | The CI harness. It fetches the lemonfiber release `targets.toml` names, checks it against its published digest, and asks it `lemonfiber plugin claims` and `lemonfiber plugin provenance`. It describes no part of the format and decides no verdict. Not part of what an operator installs. |
+| `.github/reader/` | The CI harness. It fetches the lemonfiber release `targets.toml` names and checks it against its published digest, or builds the commit it names, and asks it `lemonfiber plugin claims` and `lemonfiber plugin provenance`. It describes no part of the format and decides no verdict. Not part of what an operator installs. |
 
 ## The shape, in the order the manifest carries it
 
@@ -170,14 +171,16 @@ just ci                                                  # all of them, in CI's 
 `just` lists the rest. Each is also a command:
 
 ```sh
-python3 .github/reader/reader.py reader     # the release targets.toml names, and what it says here
+python3 .github/reader/reader.py reader     # the build targets.toml names, and what it says here
 python3 .github/reader/reader.py manifest   # every refusal it makes of the manifest
 python3 .github/reader/reader.py proofs     # every assertion on its recording; writes proofs.json
 python3 .github/reader/reader.py image      # the digests, their tags, what vouches for them
 ```
 
 The first run fetches the release into `.lemonfiber/`, which git ignores, and
-checks it against the digest published with it. Each command then asks it:
+checks it against the digest published with it. A commit is built there instead,
+once, with the toolchain and lockfile it pins, so the first run needs `git` and
+`rustup` and takes minutes rather than seconds. Each command then asks it:
 `lemonfiber plugin claims .` answers the first three and `lemonfiber plugin
 provenance .` the last, and running either yourself gives the same answer in
 full.

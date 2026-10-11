@@ -48,10 +48,11 @@ reader-tests:
     python3 -m unittest discover -s .github/reader
 
 # The release `targets.toml` names, fetched once into `.lemonfiber/` and checked
-# against its published digest, and what it says of this plugin. A capability it
-# does not offer a plugin is reported rather than failed on.
+# against its published digest, or the commit of lemonfiber's `main` it names,
+# built once there, and what it says of this plugin. A capability it does not
+# offer a plugin is reported rather than failed on.
 #
-# The release this plugin names, and what it says of it.
+# The lemonfiber this plugin names, and what it says of it.
 reader:
     python3 .github/reader/reader.py reader
 

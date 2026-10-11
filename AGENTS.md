@@ -24,7 +24,8 @@ template whose proofs are invented teaches an author to invent proofs.
 - **Nothing here executes.** A plugin is declarative data (`F3-R1`), and
   contributed code is never run, under any opt-in (`F3-R6`). The Python under
   `.github/reader/` is CI harness and is not part of what an operator installs:
-  it fetches the lemonfiber release `targets.toml` names and asks it.
+  it fetches the lemonfiber release `targets.toml` names, or builds the commit
+  of `main` it names, and asks it.
 - **The plugin is `plugin.toml` and `fixtures/`.** Proofs, claims and
   contributions live in the manifest, not beside it: an installer reads one file,
   and something the installer never reads cannot be what `F3-R4` refuses an
