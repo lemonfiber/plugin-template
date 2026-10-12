@@ -314,8 +314,8 @@ from the part's description in the media stack:
   `typos.toml`, `LICENSE`, `CLAUDE.md`, `.github/CODEOWNERS`,
   `.github/labeler.yml`, and the `labels` and `stale` workflows.
 - **Dropped:** `fixtures/`, the root's `proofs.json`, `.github/reader/`,
-  `ruff.toml`, `docs/`, and the `bundle` workflow, which only a part that builds
-  an image runs.
+  `ruff.toml`, `docs/`, `built-part/` and the `built-part` workflow, and the
+  `bundle` workflow, which only a part that builds an image runs.
 
 A workflow `bundled-part/` holds replaces the root's of the same name.
 
@@ -348,6 +348,51 @@ What changes from the plugin above:
 
 The template's own `plugin` workflow judges `bundled-part/` with that same
 workflow, so the variant holds as the repositories made from it do.
+
+## A built part
+
+`built-part/` is the variant for a part whose image lemonfiber builds from its
+upstream's, because the upstream's image cannot run under the posture its
+manifest declares as it is published. It describes Door, Caddy standing in
+front of Jellyfin, whose binary carries a file capability that a container
+holding no `NET_BIND_SERVICE` refuses to execute. The `Dockerfile` builds from
+the digest the stack pins and takes that capability off.
+
+`registry/convert.py --variant built-part` writes a part's repository from it as
+it writes one from `bundled-part/`, laid over the root the same way, with these
+differences:
+
+- **The part's own as well:** `Dockerfile`, written as a `FROM` of the image,
+  tag and digest the stack pins, to which the part adds what its posture lacks;
+  and `posture/prepare`, where the part needs one.
+- **Its image is built and published here.** The `image` workflow calls spec's
+  [`first-party-image`](https://github.com/lemonfiber/spec/blob/main/.github/workflows/first-party-image.yml):
+  on a pull request it builds the image and runs it under the posture its
+  manifest declares, failing with the container's logs where it does not come
+  up healthy (`ARCH-R250`). On main it publishes `main-<12 hex>`, and on a tag
+  the train cuts it publishes that tag, at the version `plugin.toml` declares
+  (`OPS-R90`). Each published image is run under its posture again, and one
+  rolling pull request through the release App sets the `digest` and `tag` of
+  every service running it (`OPS-R91`).
+- **`posture/prepare`** is run with a copy of the configuration directory
+  before the container starts, for what lemonfiber writes there at install.
+  Door's writes the certificate its TLS port serves.
+- **It is tagged.** A train tag's pin is on `release/image-pin`, and the
+  `bundle` workflow asks the catalogue to pin the revision that pull request
+  merges. A commit's pin is on `release/image-commit-pin`, which moves the
+  manifest and never the bundle.
+- **Until the first pin merges, the manifest names the upstream's image**, and
+  the service whose id is the plugin's says how the image built here is run.
+- **Dependabot also watches the `Dockerfile`**, so the upstream's digest moves
+  by a reviewed pull request.
+
+The repository needs a `release` environment admitting main and `v*` tags, the
+release App installed, and `packages: write` on its image in GHCR.
+
+The template's `plugin` workflow judges `built-part/` as it judges
+`bundled-part/`, and its `built-part` workflow builds the variant's image and
+runs it under its posture on every pull request; nothing is published from the
+template.
 
 ## What is deliberately absent
 
