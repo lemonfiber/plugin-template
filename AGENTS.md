@@ -24,6 +24,10 @@ service, no adapter and no Python, its CI spec's `first-party-plugin` workflow.
 It describes SABnzbd as the stack carries it. `docs/development.md` says what a
 part's repository takes from it.
 
+`built-part/` is the variant for a part whose image lemonfiber builds from its
+upstream's, published and pinned by spec's `first-party-image` workflow. It
+describes Door, built from Caddy with the file capability taken off its binary.
+
 ## The rules you cannot break
 
 - **Nothing here executes.** A plugin is declarative data (`F3-R1`), and

@@ -35,9 +35,12 @@ hooks:
 #                                              `actionlint` are the two commands
 #   osv-scanner, gitleaks, label               forge-side, and decide nothing about
 #                                              a manifest
-#   bundled-part                               spec's first-party-plugin workflow
-#                                              judges bundled-part/ in CI, with
-#                                              the reader at the commit it pins
+#   bundled-part, built-part                   spec's first-party-plugin workflow
+#                                              judges both variants in CI, with
+#                                              the reader at the commit it pins,
+#                                              and first-party-image builds
+#                                              built-part/'s image and runs it
+#                                              under its posture
 #
 # Every gate CI runs over this repository's contents — not the whole of CI.
 ci: hooks reader-tests reader manifest proofs image typos links

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 1 \
+  -subj "/CN=door" -keyout "$1/key.pem" -out "$1/certificate.pem" 2>/dev/null
+chmod 0644 "$1/key.pem" "$1/certificate.pem"
