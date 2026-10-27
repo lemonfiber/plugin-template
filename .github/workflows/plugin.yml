@@ -127,12 +127,12 @@ jobs:
 
   # The bundled-part variant, judged as a bundled part's own repository judges it.
   bundled-part:
-    uses: lemonfiber/spec/.github/workflows/first-party-plugin.yml@a3a5049ee28c2261cc6728db8b48fdf1083b4eca # v1.0.119
+    uses: lemonfiber/spec/.github/workflows/first-party-plugin.yml@25319a39874a3bb1fb6f5a5f32c879fb84c990e1 # v1.0.120
     with:
       directory: bundled-part
 
   # The built-part variant, judged as a built part's own repository judges it.
   built-part:
-    uses: lemonfiber/spec/.github/workflows/first-party-plugin.yml@a3a5049ee28c2261cc6728db8b48fdf1083b4eca # v1.0.119
+    uses: lemonfiber/spec/.github/workflows/first-party-plugin.yml@25319a39874a3bb1fb6f5a5f32c879fb84c990e1 # v1.0.120
     with:
       directory: built-part
