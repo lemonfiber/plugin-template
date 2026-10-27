@@ -196,6 +196,12 @@ that release, which naming the release in `targets.toml` does not claim.
 `just ci` is every gate CI runs over the contents of this repository. The jobs it
 leaves out are named in the `justfile` beside the recipe, with what covers each.
 
+SonarCloud's automatic analysis takes an issue ignore only from the project's own
+settings on SonarCloud, never from a file in the repository. A repository made from
+this one has `docker:S8431` ignored on `**/Dockerfile*` in its SonarCloud project when
+the project is imported, because every image here is named by its tag and its digest
+together (ADR-0025), which is what that rule reports.
+
 ## Recording a fixture
 
 A recording is a moment, and it is reviewed like the manifest: a fixture nobody

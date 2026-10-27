@@ -48,6 +48,10 @@ describes Door, built from Caddy with the file capability taken off its binary.
   no declaration excuses it (`F10-R16`). Failing as declared is its own
   verdict, written apart from passed and failed and never counted as passed
   (`F10-R13`).
+- **Sonar's ignores live in the SonarCloud project, never in a file here.**
+  Automatic analysis reads no issue ignore from the repository, so a repository
+  made from this one needs `docker:S8431` ignored on `**/Dockerfile*` in its
+  project's settings: every image is named by tag and digest (ADR-0025).
 - **No field beyond the contract's set.** A manifest carrying one is refused by
   name rather than ignored (`ARCH-R84`).
 - **The format is lemonfiber's to describe, and nothing here describes it.**
