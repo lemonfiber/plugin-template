@@ -17,13 +17,16 @@ says how the catalogue pins it and how lemonfiber carries it.
 
 - **The plugin id is the service's id** (`ARCH-R266`). The container, the
   configuration directory, the settings and the journal keep their names.
-- **One service, speaking no contract**, while the bundle assembles it. It
-  declares `replaces` naming its own id, which is how it takes the id, the port
-  and the hostname the bundle reserves for it (`ARCH-R222`).
-- **Its claims' recordings sit under `recordings/sabnzbd/`**, and its starting
-  files, where it has any, under `config/sabnzbd/` (`ARCH-R271`).
+- **SABnzbd speaks no contract; its adapter does.** SABnzbd declares `native`
+  and `replaces` naming its own id, which is how it takes the id, the port and
+  the hostname the bundle reserves for it (`ARCH-R222`). `sabnzbd-adapter`
+  fronts it and speaks `download.usenet@1`, with the key lemonfiber mints as
+  `upstream-key`.
+- **Its proofs' recordings sit under `recordings/sabnzbd/`**, its adapter's
+  conformance answers under `conformance/download.usenet@1/`, and its starting
+  files under `config/sabnzbd/` (`ARCH-R271`).
 - **Every service declares `reaches` and `asks_for`** (`ARCH-R270`).
 - **No Python here.** The reader is spec's `first-party-plugin` workflow's.
-- **The image is SABnzbd's own**, so this repository is never tagged. Moving
-  the digest means recording every response again against the new image in
-  the same change, and committing the `proofs.json` the checks write.
+- **Neither image is built here**, so this repository is never tagged. Moving
+  a digest means recording every response again against the new image in the
+  same change, and committing the `proofs.json` the checks write.
