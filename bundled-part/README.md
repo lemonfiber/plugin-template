@@ -14,10 +14,13 @@ The default bundle in
 [lemonfiber-plugins](https://github.com/lemonfiber/lemonfiber-plugins) pins this
 repository by a revision and the digests of its manifest and its tree, and
 lemonfiber compiles that tree in.
-Until its adapter ships, lemonfiber assembles SABnzbd into the stack it ships as a
-stack service, and reaches it through the in-process adapter its `api` names.
-Its image is SABnzbd's own, so the release train never tags this repository, and
-its pin moves by a reviewed pull request on the catalogue.
+lemonfiber reaches SABnzbd through its adapter, the image
+`ghcr.io/lemonfiber/sabnzbd-adapter`, which speaks lemonfiber's `download.usenet`
+contract in front of it. lemonfiber mints the key SABnzbd answers its API to,
+writes it into SABnzbd's starting `sabnzbd.ini` and hands it to the adapter, and
+to nothing else. Both images are pinned by digest and neither is built here, so
+the release train never tags this repository, and its pin moves by a reviewed
+pull request on the catalogue.
 
 ## What is here
 
@@ -25,7 +28,8 @@ its pin moves by a reviewed pull request on the catalogue.
 | --- | --- |
 | `plugin.toml` | The part's manifest |
 | `config/sabnzbd/` | The files SABnzbd starts with, written into its configuration directory |
-| `recordings/sabnzbd/` | The responses its claims are proved against |
+| `recordings/sabnzbd/` | The responses its proofs are held to |
+| `conformance/download.usenet@1/` | The adapter's answer to each conformance case, in front of the pinned SABnzbd |
 | `targets.toml` | The lemonfiber its checks run against |
 | `proofs.json` | What those checks said, committed |
 
@@ -34,7 +38,8 @@ its pin moves by a reviewed pull request on the catalogue.
 The plugin verdict is one job of spec's
 [`first-party-plugin`](https://github.com/lemonfiber/spec/blob/main/.github/workflows/first-party-plugin.yml)
 workflow: the manifest as the lemonfiber `targets.toml` names reads it, every
-claim against its recording, and every pinned digest. This repository holds no
+proof against its recording, every pinned digest, and every recording and
+conformance case taken again from the pinned images. This repository holds no
 Python of its own. `just ci` runs the gates that need nothing but this tree.
 
 ## Licence

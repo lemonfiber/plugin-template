@@ -1,16 +1,10 @@
 {
-  "lemonfiber": "5e3ef10f7037f6a53d5bfd2cf87ed1c69cbc4387",
+  "lemonfiber": "fdc71e22778e452a697b4a1026e33c9b779066e1",
   "against": "recordings",
   "proofs": [
     {
-      "id": "download.usenet/guarded",
-      "kind": "probe",
-      "outcome": "passed",
-      "detail": ""
-    },
-    {
-      "id": "download.usenet/queue",
-      "kind": "probe",
+      "id": "sabnzbd.guarded",
+      "kind": "proof",
       "outcome": "passed",
       "detail": ""
     }
