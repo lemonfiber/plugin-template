@@ -25,6 +25,11 @@ says how the catalogue pins it and how lemonfiber carries it.
 - **Every service declares `reaches` and `asks_for`** (`ARCH-R270`).
 - **No Python here.** The reader is spec's `first-party-plugin` workflow's.
 - **The image is built here** (`OPS-R90`). The `Dockerfile` builds it from
-  its upstream's, and it runs under the posture its manifest declares (`ARCH-R250`);
-  `posture/prepare`, where there is one, gives it what lemonfiber writes at
-  install. Its pin moves on the release app's rolling pull request.
+  its upstream's, and it runs under the posture its manifest declares (`ARCH-R250`).
+  Its pin moves on the release app's rolling pull request.
+- **The certificate its TLS port serves is declared, never made here.**
+  `[service.certificate]` names its key and certificate beneath the
+  configuration directory and the names it is made out to; lemonfiber makes the
+  pair before the first start, and the image, recording and run proof checks
+  are handed a throwaway one made the same way (`ARCH-R356`). No program this
+  repository ships is run.
