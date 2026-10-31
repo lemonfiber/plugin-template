@@ -374,8 +374,7 @@ it writes one from `bundled-part/`, laid over the root the same way, with these
 differences:
 
 - **The part's own as well:** `Dockerfile`, written as a `FROM` of the image,
-  tag and digest the stack pins, to which the part adds what its posture lacks;
-  and `posture/prepare`, where the part needs one.
+  tag and digest the stack pins, to which the part adds what its posture lacks.
 - **Its image is built and published here.** The `image` workflow calls spec's
   [`first-party-image`](https://github.com/lemonfiber/spec/blob/main/.github/workflows/first-party-image.yml):
   on a pull request it builds the image and runs it under the posture its
@@ -385,9 +384,12 @@ differences:
   (`OPS-R90`). Each published image is run under its posture again, and one
   rolling pull request through the release App sets the `digest` and `tag` of
   every service running it (`OPS-R91`).
-- **`posture/prepare`** is run with a copy of the configuration directory
-  before the container starts, for what lemonfiber writes there at install.
-  Door's writes the certificate its TLS port serves.
+- **A certificate is declared, never made by the part.** A service that serves
+  TLS of its own declares `[service.certificate]`: its key and certificate
+  beneath the configuration directory and the names it is made out to.
+  lemonfiber makes the pair before the first start, and `first-party-image`,
+  `plugin record` and a run proof hand the service a throwaway one made the
+  same way (`ARCH-R356`). Door's TLS port serves the one it declares.
 - **It is tagged.** A train tag's pin is on `release/image-pin`, and the
   `bundle` workflow asks the catalogue to pin the revision that pull request
   merges. A commit's pin is on `release/image-commit-pin`, which moves the
