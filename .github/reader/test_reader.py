@@ -65,6 +65,23 @@ RELEASE = reader.Target("0.17.0", commit=False)
 COMMIT = reader.Target("c" * 40, commit=True)
 
 
+class Claimed(unittest.TestCase):
+    def read(self, printed: dict) -> dict:
+        """What the reader takes from `plugin claims --json` printing this."""
+        answer = subprocess.CompletedProcess([], 0, stdout=json.dumps(printed), stderr="")
+        with mock.patch.object(reader, "plugin", return_value=answer):
+            return reader.claimed()
+
+    def test_an_envelope_is_read_for_the_claims_it_carries(self):
+        claims = {"refusals": [], "proofs": []}
+        printed = {"api_version": 1, "kind": reader.CLAIMS_KIND, "data": claims}
+        self.assertEqual(self.read(printed), claims)
+
+    def test_claims_printed_bare_are_read_as_they_are(self):
+        claims = {"refusals": [], "proofs": []}
+        self.assertEqual(self.read(claims), claims)
+
+
 class Proofs(unittest.TestCase):
     def setUp(self) -> None:
         box = tempfile.TemporaryDirectory()

@@ -76,6 +76,9 @@ PROFILE = "dist"
 DIRECTIVE = "#:schema "
 FETCH_TIMEOUT_S = 120
 
+# The envelope kind a build wrapping `plugin claims --json` names its answer by.
+CLAIMS_KIND = "plugin-claims"
+
 # The one refusal that is about the release rather than the manifest.
 UNOFFERED = "is not something this build offers a plugin"
 
@@ -224,12 +227,14 @@ def plugin(*asked: str) -> subprocess.CompletedProcess:
 
 
 def claimed() -> dict:
-    """What `lemonfiber plugin claims --json` says, or why it said nothing."""
+    """What `lemonfiber plugin claims --json` says, out of its envelope where the build
+    answers in one, or why it said nothing."""
     answer = plugin("claims", "--json")
     try:
-        return json.loads(answer.stdout)
+        said = json.loads(answer.stdout)
     except ValueError:
         raise Unasked(f"lemonfiber read nothing here: {answer.stderr.strip()}") from None
+    return said["data"] if said.get("kind") == CLAIMS_KIND else said
 
 
 def reader() -> int:
