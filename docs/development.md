@@ -307,9 +307,7 @@ starting file, its recordings and its adapter's conformance answers, and the
 says how the catalogue pins such a part and how lemonfiber carries it.
 
 A part's repository is this repository with `bundled-part/` laid over its
-root, and `registry/convert.py` in
-[lemonfiber-plugins](https://github.com/lemonfiber/lemonfiber-plugins) writes it
-from the part's description in the media stack:
+root:
 
 - **Taken from `bundled-part/`:** `targets.toml`, `justfile`, `.gitignore`,
   `.github/dependabot.yml` and its workflows.
@@ -369,9 +367,8 @@ front of Jellyfin, whose binary carries a file capability that a container
 holding no `NET_BIND_SERVICE` refuses to execute. The `Dockerfile` builds from
 the digest the stack pins and takes that capability off.
 
-`registry/convert.py --variant built-part` writes a part's repository from it as
-it writes one from `bundled-part/`, laid over the root the same way, with these
-differences:
+A built part's repository is this repository with `built-part/` laid over its
+root the same way, with these differences:
 
 - **The part's own as well:** `Dockerfile`, written as a `FROM` of the image,
   tag and digest the stack pins, to which the part adds what its posture lacks.
